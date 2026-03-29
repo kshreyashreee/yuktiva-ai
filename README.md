@@ -1,10 +1,10 @@
 <div align="center">
 
-<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=32&pause=1000&color=7C3AED&center=true&vCenter=true&width=600&lines=⚡+Yuktiva+AI;Multi-Agent+Content+Operations;ET+GenAI+Hackathon+2026" alt="Typing SVG" />
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=32&pause=1000&color=7C3AED&center=true&vCenter=true&width=700&lines=%E2%9A%A1+Yuktiva+AI;Multi-Agent+Content+Operations;ET+GenAI+Hackathon+2026" alt="Typing SVG" />
 
 <br/>
 
-**Phase 2 Prototype Submission — ET GenAI Hackathon 2026**
+**Phase 2 Prototype Submission — ET GenAI Hackathon 2026**  
 **Problem Statement 1: AI for Enterprise Content Operations**
 
 *Multi-agent system automating content creation, compliance review, localization & distribution.*
@@ -19,9 +19,7 @@
 
 <br/>
 
-[🚀 Live Demo](#-live-demo) · [📖 Setup Guide](#-local-setup) · [🏗️ Architecture](#️-architecture) · [📊 Impact Model](#-impact-model)
-
----
+[📖 Setup Guide](#-local-setup) · [🏗️ Architecture](#️-architecture) 
 
 </div>
 
@@ -239,5 +237,5 @@ MIT — ET GenAI Hackathon 2026
 ---
 
 <div align="center">
-⚡ <b>Yuktiva AI</b> — Smart. Compliant. Fast. Powered by Groq.
+⚡ <b>Yuktiva AI</b> — Smart. Compliant. Fast. Powered by AI.
 </div>
