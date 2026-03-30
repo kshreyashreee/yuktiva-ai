@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Yuktiva AI — Architecture Document</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --violet:  #6D28D9;
+    --vmid:    #8B5CF6;
+    --vlit:    #EDE9FE;
+    --cyan:    #0891B2;
+    --clit:    #CFFAFE;
+    --teal:    #0D9488;
+    --tlit:    #CCFBF1;
+    --amber:   #D97706;
+    --alit:    #FEF3C7;
+    --blue:    #2563EB;
+    --blit:    #DBEAFE;
+    --rose:    #E11D48;
+    --rlit:    #FFE4E6;
+    --ink:     #0F0F1A;
+    --slate:   #475569;
+    --gray:    #94A3B8;
+    --lgray:   #F1F5F9;
+    --border:  #E2E8F0;
+    --white:   #ffffff;
+  }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #F8FAFC;
+    color: var(--ink);
+    line-height: 1.6;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .page {
+    width: 210mm;
+    min-height: 297mm;
+    background: white;
+    margin: 0 auto 32px;
+    box-shadow: 0 4px 32px rgba(0,0,0,0.12);
+    padding: 0;
+    overflow: hidden;
+    page-break-after: always;
+  }
+
+  /* ── HEADER ── */
+  .page-header {
+    background: var(--ink);
+    padding: 20px 32px 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .page-header::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 100%; height: 3px;
+    background: var(--violet);
+    bottom: 0; top: auto;
+  }
+  .header-blob {
+    position: absolute;
+    border-radius: 50%;
+    background: var(--violet);
+    opacity: 0.15;
+  }
+  .header-blob-1 { width: 80px; height: 80px; right: -20px; top: -20px; }
+  .header-blob-2 { width: 48px; height: 48px; right: 60px; bottom: -10px; }
+  .header-logo-row { display: flex; align-items: center; gap: 10px; }
+  .logo-dot {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--violet);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; color: white; font-weight: 800;
+    flex-shrink: 0;
+  }
+  .header-title { font-size: 18px; font-weight: 800; color: white; }
+  .header-sub { font-size: 9px; color: #C4B5FD; margin-top: 3px; }
+  .header-meta { font-size: 8px; color: var(--gray); margin-top: 2px; }
+  .header-page { font-size: 11px; font-weight: 700; color: #F59E0B; }
+
+  /* ── BODY ── */
+  .page-body { padding: 22px 32px 24px; }
+
+  /* ── FOOTER ── */
+  .page-footer {
+    border-top: 1px solid var(--border);
+    padding: 8px 32px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .page-footer span { font-size: 7px; color: var(--gray); }
+
+  /* ── SECTION LABEL ── */
+  .section-label {
+    font-size: 9px; font-weight: 700; color: var(--ink);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    display: flex; align-items: center; gap: 7px;
+    margin-bottom: 10px;
+  }
+  .section-label-bar {
+    width: 3px; height: 12px; border-radius: 2px;
+    background: var(--violet); flex-shrink: 0;
+  }
+  .section-label-bar.teal   { background: var(--teal); }
+  .section-label-bar.rose   { background: var(--rose); }
+  .section-label-bar.amber  { background: var(--amber); }
+
+  /* ── OVERVIEW ── */
+  .overview {
+    background: var(--vlit);
+    border: 1px solid #C4B5FD;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    font-size: 8px; color: var(--slate); line-height: 1.6;
+  }
+  .overview strong { color: var(--violet); }
+
+  /* ── 3-COL ARCH ── */
+  .arch-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+  .arch-card {
+    border-radius: 8px; border-width: 1.5px; border-style: solid;
+    overflow: hidden;
+  }
+  .arch-card-header {
+    padding: 8px 10px 6px;
+    font-size: 8.5px; font-weight: 700; color: var(--ink); text-align: center;
+  }
+  .arch-card-sub { font-size: 6.5px; color: var(--slate); text-align: center; margin-top: 2px; }
+  .arch-card-divider { height: 1px; background: var(--border); margin: 0 10px 6px; }
+  .arch-card-body { padding: 0 10px 10px; }
+  .arch-card-item { font-size: 6.5px; color: var(--ink); padding: 2px 0; line-height: 1.4; }
+  .arch-card-item::before { content: '·  '; }
+
+  /* Arrows between cols */
+  .arch-arrows {
+    display: grid; grid-template-columns: 1fr auto 1fr auto 1fr;
+    align-items: center; margin-bottom: 4px;
+  }
+  .arch-arrow-block { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 0 4px; }
+  .arrow-label { font-size: 5.5px; color: var(--violet); font-weight: 600; white-space: nowrap; }
+  .arrow-label.teal { color: var(--teal); }
+  .arrow-sym { font-size: 11px; }
+
+  /* ── PIPELINE ── */
+  .pipeline-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 8px; }
+  .pipeline-card {
+    border-radius: 6px; border-width: 1px; border-style: solid;
+    overflow: hidden; position: relative;
+  }
+  .pipeline-card-top { height: 5px; }
+  .pipeline-card-body { padding: 8px 6px; text-align: center; }
+  .pipeline-name { font-size: 7.5px; font-weight: 700; color: var(--ink); line-height: 1.3; }
+  .pipeline-sub  { font-size: 6px; color: var(--slate); margin-top: 3px; line-height: 1.3; }
+  .pipeline-model-badge {
+    display: inline-block; margin-top: 5px;
+    font-size: 6px; font-weight: 700; color: white;
+    padding: 1px 5px; border-radius: 10px;
+  }
+
+  .pipeline-arrows { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 4px 0 6px; }
+  .pipeline-arrow { font-size: 9px; color: var(--gray); }
+
+  .pipeline-note { font-size: 6.5px; color: var(--gray); text-align: center; margin-bottom: 8px; font-style: italic; }
+
+  .approval-gate {
+    border: 1.5px solid var(--rose); background: var(--rlit);
+    border-radius: 6px; text-align: center; padding: 6px;
+    font-size: 8px; font-weight: 700; color: var(--rose);
+    max-width: 260px; margin: 0 auto 16px;
+  }
+
+  /* ── OTHER PIPELINES ── */
+  .other-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 0; }
+  .other-card {
+    border: 1px solid var(--border); border-radius: 8px;
+    overflow: hidden; background: white;
+  }
+  .other-card-title { font-size: 7.5px; font-weight: 700; color: var(--ink); padding: 8px 10px 4px; }
+  .other-card-divider { height: 1px; background: var(--border); margin: 0 10px 6px; }
+  .other-step {
+    margin: 0 8px 5px;
+    border-radius: 4px; color: white;
+    font-size: 6.5px; font-weight: 700;
+    padding: 4px 8px; text-align: center;
+    position: relative;
+  }
+  .other-step-arrow { text-align: center; font-size: 9px; color: var(--border); line-height: 1; margin: -1px 0; }
+
+  /* ── TABLE ── */
+  .agent-table { width: 100%; border-collapse: collapse; font-size: 6.5px; margin-bottom: 16px; }
+  .agent-table thead tr { background: var(--ink); color: white; }
+  .agent-table thead th { padding: 5px 6px; text-align: left; font-weight: 700; font-size: 6.5px; }
+  .agent-table tbody tr:nth-child(even) { background: var(--lgray); }
+  .agent-table tbody tr:nth-child(odd)  { background: white; }
+  .agent-table tbody td { padding: 4px 6px; color: var(--ink); border-bottom: 1px solid var(--border); }
+  .agent-table tbody td:first-child { font-weight: 700; color: var(--violet); }
+  .agent-table tbody td:last-child { color: var(--teal); font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 6px; }
+  .model-pill {
+    display: inline-block; padding: 1px 5px; border-radius: 10px;
+    font-size: 5.5px; font-weight: 700; color: white;
+  }
+
+  /* ── TWO-COL LAYOUT ── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+
+  /* ── COMM FLOW ── */
+  .comm-step { display: flex; align-items: flex-start; gap: 9px; margin-bottom: 12px; position: relative; }
+  .comm-step-num {
+    width: 18px; height: 18px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 7px; font-weight: 800; color: white;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .comm-step-line {
+    position: absolute; left: 9px; top: 20px;
+    width: 1px; height: calc(100% + 4px);
+    background: var(--border);
+  }
+  .comm-step-title { font-size: 7px; font-weight: 700; color: var(--ink); }
+  .comm-step-detail { font-size: 6px; color: var(--slate); margin-top: 2px; line-height: 1.4; }
+
+  /* ── TOOLS ── */
+  .tool-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .tool-pill {
+    display: inline-block; padding: 3px 9px; border-radius: 12px;
+    font-size: 6.5px; font-weight: 700; color: white; white-space: nowrap;
+    min-width: 72px; text-align: center;
+  }
+  .tool-desc { font-size: 6.5px; color: var(--slate); }
+
+  /* ── ERROR GRID ── */
+  .error-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 16px; }
+  .error-card {
+    background: var(--rlit); border: 1px solid #FECDD3; border-radius: 5px;
+    padding: 7px 9px;
+  }
+  .error-title { font-size: 7px; font-weight: 700; color: var(--rose); margin-bottom: 3px; }
+  .error-detail { font-size: 6.5px; color: var(--slate); line-height: 1.4; }
+
+  /* ── STORAGE ── */
+  .storage-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+  .storage-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 8px; border-radius: 5px; border: 1px solid var(--border);
+  }
+  .storage-row:nth-child(odd)  { background: var(--lgray); }
+  .storage-row:nth-child(even) { background: white; }
+  .storage-badge {
+    display: inline-block; padding: 2px 7px; border-radius: 10px;
+    font-size: 6px; font-weight: 700; color: white; white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .storage-desc { font-size: 6.5px; color: var(--slate); }
+
+  @media print {
+    body { background: white; }
+    .page { margin: 0; box-shadow: none; page-break-after: always; }
+    @page { size: A4; margin: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════ PAGE 1 ═══════════════════════════════════ -->
+<div class="page">
+  <div class="page-header">
+    <div class="header-blob header-blob-1"></div>
+    <div class="header-blob header-blob-2"></div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+      <div>
+        <div class="header-logo-row">
+          <div class="logo-dot">⚡</div>
+          <div class="header-title">YUKTIVA AI — Architecture Document</div>
+        </div>
+        <div class="header-sub">Multi-Agent Enterprise Content Operations Platform · System Design & Agent Communication Protocol</div>
+        <div class="header-meta">ET GenAI Hackathon 2026 · Problem Statement 1 · Powered by Groq LLaMA 3.3 70B</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="header-page">Page 1 / 2</div>
+        <div style="font-size:8px;color:var(--gray);margin-top:3px;">Architecture</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-body">
+
+    <!-- Overview -->
+    <div class="overview">
+      <strong>Overview —</strong> Yuktiva AI orchestrates <strong>3–5 specialised AI agents per pipeline</strong> via a Node.js/Express backend, streaming results in real-time over Server-Sent Events (SSE) to a React 18 frontend. All agents run on <strong>Groq (LLaMA 3.3 70B / 3.1 8B)</strong> with smart model routing — large models for complex reasoning, small models for fast transforms — achieving comparable results at ~40% lower cost.
+    </div>
+
+    <!-- System Architecture -->
+    <div class="section-label"><div class="section-label-bar"></div>HIGH-LEVEL SYSTEM ARCHITECTURE</div>
+    <div class="arch-grid">
+      <div class="arch-card" style="border-color:var(--blue);background:var(--blit);">
+        <div style="height:5px;background:var(--blue);"></div>
+        <div class="arch-card-header">🖥 React Frontend<div class="arch-card-sub">Vite 5 · React 18 · Tailwind CSS</div></div>
+        <div class="arch-card-divider"></div>
+        <div class="arch-card-body">
+          <div class="arch-card-item">11 pages · React Router v6</div>
+          <div class="arch-card-item">SSE stream parser (live events)</div>
+          <div class="arch-card-item">JWT auth context + auto-logout</div>
+          <div class="arch-card-item">Document Manager (upload / DL)</div>
+          <div class="arch-card-item">Agent Pipeline live view</div>
+          <div class="arch-card-item">Human Approval Gate UI</div>
+          <div class="arch-card-item">Admin Panel with RBAC</div>
+        </div>
+      </div>
+      <div class="arch-card" style="border-color:var(--teal);background:var(--tlit);">
+        <div style="height:5px;background:var(--teal);"></div>
+        <div class="arch-card-header">⚙ Express Backend<div class="arch-card-sub">Node.js 18 · 5 route modules</div></div>
+        <div class="arch-card-divider"></div>
+        <div class="arch-card-body">
+          <div class="arch-card-item">JWT + bcryptjs (role auth)</div>
+          <div class="arch-card-item">Multer file upload (50 MB cap)</div>
+          <div class="arch-card-item">pdf-parse + mammoth (extract)</div>
+          <div class="arch-card-item">SSE streaming pipeline route</div>
+          <div class="arch-card-item">Winston logger (file + buffer)</div>
+          <div class="arch-card-item">JSON flat-file data store</div>
+          <div class="arch-card-item">4 pipeline orchestrators</div>
+        </div>
+      </div>
+      <div class="arch-card" style="border-color:var(--violet);background:var(--vlit);">
+        <div style="height:5px;background:var(--violet);"></div>
+        <div class="arch-card-header">🤖 Groq AI Layer<div class="arch-card-sub">LLaMA 3.3 70B + LLaMA 3.1 8B</div></div>
+        <div class="arch-card-divider"></div>
+        <div class="arch-card-body">
+          <div class="arch-card-item">Smart model routing (L / S)</div>
+          <div class="arch-card-item">Structured JSON system prompts</div>
+          <div class="arch-card-item">Per-agent role specialisation</div>
+          <div class="arch-card-item">Sequential chained execution</div>
+          <div class="arch-card-item">JSON fallback parse recovery</div>
+          <div class="arch-card-item">~1500–3000 tokens per agent</div>
+          <div class="arch-card-item">Free tier available at groq.com</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:center;gap:32px;margin:-8px 0 14px;font-size:6.5px;color:var(--gray);">
+      <span style="color:var(--blue);">→ POST /api/pipeline/run →</span>
+      <span style="color:var(--teal);">← SSE event stream ←</span>
+      <span style="color:var(--teal);">→ chat.completions.create →</span>
+      <span style="color:var(--violet);">← JSON response ←</span>
+    </div>
+
+    <!-- Product Launch Pipeline -->
+    <div class="section-label"><div class="section-label-bar"></div>PRODUCT LAUNCH PIPELINE — 5 AGENTS (PRIMARY PIPELINE)</div>
+    <div class="pipeline-grid">
+      <div class="pipeline-card" style="border-color:var(--violet);background:var(--vlit);">
+        <div class="pipeline-card-top" style="background:var(--violet);"></div>
+        <div class="pipeline-card-body">
+          <div class="pipeline-name">① Drafter</div>
+          <div class="pipeline-sub">Blog · Social<br>FAQ · Ad copy</div>
+          <div class="pipeline-model-badge" style="background:var(--violet);">LLaMA 70B</div>
+        </div>
+      </div>
+      <div class="pipeline-card" style="border-color:var(--cyan);background:var(--clit);">
+        <div class="pipeline-card-top" style="background:var(--cyan);"></div>
+        <div class="pipeline-card-body">
+          <div class="pipeline-name">② Localizer</div>
+          <div class="pipeline-sub">Regional<br>translation</div>
+          <div class="pipeline-model-badge" style="background:var(--cyan);">LLaMA 8B</div>
+        </div>
+      </div>
+      <div class="pipeline-card" style="border-color:var(--teal);background:var(--tlit);">
+        <div class="pipeline-card-top" style="background:var(--teal);"></div>
+        <div class="pipeline-card-body">
+          <div class="pipeline-name">③ Brand<br>Reviewer</div>
+          <div class="pipeline-sub">Tone & voice<br>QA check</div>
+          <div class="pipeline-model-badge" style="background:var(--teal);">LLaMA 8B</div>
+        </div>
+      </div>
+      <div class="pipeline-card" style="border-color:var(--amber);background:var(--alit);">
+        <div class="pipeline-card-top" style="background:var(--amber);"></div>
+        <div class="pipeline-card-body">
+          <div class="pipeline-name">④ Compliance</div>
+          <div class="pipeline-sub">Regulatory<br>violation scan</div>
+          <div class="pipeline-model-badge" style="background:var(--amber);">LLaMA 70B</div>
+        </div>
+      </div>
+      <div class="pipeline-card" style="border-color:var(--blue);background:var(--blit);">
+        <div class="pipeline-card-top" style="background:var(--blue);"></div>
+        <div class="pipeline-card-body">
+          <div class="pipeline-name">⑤ Publisher</div>
+          <div class="pipeline-sub">Channel<br>packaging</div>
+          <div class="pipeline-model-badge" style="background:var(--blue);">LLaMA 8B</div>
+        </div>
+      </div>
+    </div>
+    <div class="pipeline-note">L = llama-3.3-70b-versatile (complex reasoning) &nbsp;·&nbsp; S = llama-3.1-8b-instant (fast transforms, ~40% cheaper) &nbsp;·&nbsp; Structured JSON handoffs between every agent</div>
+    <div class="approval-gate">👤 &nbsp; HUMAN APPROVAL GATE — Review · Approve · Reject · Feedback</div>
+
+    <!-- Other Pipelines -->
+    <div class="section-label"><div class="section-label-bar teal"></div>OTHER PIPELINE ARCHITECTURES (3 AGENTS EACH)</div>
+    <div class="other-grid">
+      <div class="other-card">
+        <div class="other-card-title">🔍 &nbsp;FACT CHECK</div>
+        <div class="other-card-divider"></div>
+        <div class="other-step" style="background:var(--violet);">1. Claim Extractor <span style="float:right;font-weight:400;font-size:5.5px;">8B</span></div>
+        <div class="other-step-arrow">↓</div>
+        <div class="other-step" style="background:var(--cyan);">2. Research &amp; Verifier <span style="float:right;font-weight:400;font-size:5.5px;">70B</span></div>
+        <div class="other-step-arrow">↓</div>
+        <div class="other-step" style="background:var(--teal);">3. Report Generator <span style="float:right;font-weight:400;font-size:5.5px;">70B</span></div>
+        <div style="height:8px;"></div>
+      </div>
+      <div class="other-card">
+        <div class="other-card-title">📊 &nbsp;STRATEGY PIVOT</div>
+        <div class="other-card-divider"></div>
+        <div class="other-step" style="background:var(--violet);">1. Analytics Analyzer <span style="float:right;font-weight:400;font-size:5.5px;">70B</span></div>
+        <div class="other-step-arrow">↓</div>
+        <div class="other-step" style="background:var(--teal);">2. Strategy Recommender <span style="float:right;font-weight:400;font-size:5.5px;">70B</span></div>
+        <div class="other-step-arrow">↓</div>
+        <div class="other-step" style="background:var(--cyan);">3. Calendar Generator <span style="float:right;font-weight:400;font-size:5.5px;">8B</span></div>
+        <div style="height:8px;"></div>
+      </div>
+      <div class="other-card">
+        <div class="other-card-title">🛡 &nbsp;COMPLIANCE REVIEW</div>
+        <div class="other-card-divider"></div>
+        <div class="other-step" style="background:var(--amber);">1. Content Scanner <span style="float:right;font-weight:400;font-size:5.5px;">70B</span></div>
+        <div class="other-step-arrow">↓</div>
+        <div class="other-step" style="background:var(--rose);">2. Remediation Agent <span style="float:right;font-weight:400;font-size:5.5px;">70B</span></div>
+        <div class="other-step-arrow">↓</div>
+        <div class="other-step" style="background:var(--teal);">3. Audit Reporter <span style="float:right;font-weight:400;font-size:5.5px;">8B</span></div>
+        <div style="height:8px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    <span>Yuktiva AI · Problem Statement 1: Enterprise Content Operations · ET GenAI Hackathon 2026</span>
+    <span>Groq: llama-3.3-70b-versatile + llama-3.1-8b-instant</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ PAGE 2 ═══════════════════════════════════ -->
+<div class="page">
+  <div class="page-header">
+    <div class="header-blob header-blob-1"></div>
+    <div class="header-blob header-blob-2"></div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+      <div>
+        <div class="header-logo-row">
+          <div class="logo-dot">⚡</div>
+          <div class="header-title">YUKTIVA AI — Architecture Document (Page 2)</div>
+        </div>
+        <div class="header-sub">Agent Roles · Tool Integrations · Communication Protocol · Error Handling · Data Storage</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="header-page">Page 2 / 2</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-body">
+
+    <!-- Agent Roles Table -->
+    <div class="section-label"><div class="section-label-bar"></div>AGENT ROLES & RESPONSIBILITIES</div>
+    <table class="agent-table">
+      <thead>
+        <tr>
+          <th>Agent</th><th>Pipeline</th><th>Input</th><th>Output (JSON keys)</th><th>Model</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Drafter</td><td>Product Launch</td><td>Spec + brand context</td><td>{blogPost, socialVariants, faq, adCopy}</td><td><span class="model-pill" style="background:var(--violet);">LLaMA 70B</span></td></tr>
+        <tr><td>Localizer</td><td>Product Launch</td><td>Drafter JSON + language</td><td>{blogTitle, caption, adHeadline, culturalNotes}</td><td><span class="model-pill" style="background:var(--cyan);">LLaMA 8B</span></td></tr>
+        <tr><td>Brand Reviewer</td><td>Product Launch</td><td>Drafter JSON + guidelines</td><td>{score, issues[], strengths[], recommendations[]}</td><td><span class="model-pill" style="background:var(--teal);">LLaMA 8B</span></td></tr>
+        <tr><td>Compliance</td><td>Product Launch</td><td>Drafter JSON + industry</td><td>{violations[], riskLevel, compliantRewrites[]}</td><td><span class="model-pill" style="background:var(--amber);">LLaMA 70B</span></td></tr>
+        <tr><td>Publisher</td><td>Product Launch</td><td>All 4 prior outputs</td><td>{channels[], contentCalendar[], estimatedReach}</td><td><span class="model-pill" style="background:var(--blue);">LLaMA 8B</span></td></tr>
+        <tr><td>Claim Extractor</td><td>Fact Check</td><td>Raw content text</td><td>{claims[], totalClaims}</td><td><span class="model-pill" style="background:var(--cyan);">LLaMA 8B</span></td></tr>
+        <tr><td>Research Agent</td><td>Fact Check</td><td>Claims JSON array</td><td>{verifications[], overallCredibility, redFlags[]}</td><td><span class="model-pill" style="background:var(--violet);">LLaMA 70B</span></td></tr>
+        <tr><td>Report Generator</td><td>Fact Check</td><td>Verifications JSON</td><td>{credibilityScore, breakdown, flaggedClaims[]}</td><td><span class="model-pill" style="background:var(--violet);">LLaMA 70B</span></td></tr>
+        <tr><td>Analytics Analyzer</td><td>Strategy Pivot</td><td>Analytics data + context</td><td>{keyInsights[], topPerformers[], trendAnalysis}</td><td><span class="model-pill" style="background:var(--violet);">LLaMA 70B</span></td></tr>
+        <tr><td>Strategy Recommender</td><td>Strategy Pivot</td><td>Analytics insights JSON</td><td>{recommendations[], roadmap[], contentMix}</td><td><span class="model-pill" style="background:var(--violet);">LLaMA 70B</span></td></tr>
+        <tr><td>Calendar Generator</td><td>Strategy Pivot</td><td>Strategy output JSON</td><td>{weeklySchedule[], contentPillars[], reach}</td><td><span class="model-pill" style="background:var(--cyan);">LLaMA 8B</span></td></tr>
+      </tbody>
+    </table>
+
+    <!-- Two-col: Comm flow + Tools -->
+    <div class="two-col">
+      <div>
+        <div class="section-label"><div class="section-label-bar teal"></div>COMMUNICATION FLOW</div>
+        <div class="comm-step">
+          <div class="comm-step-num" style="background:var(--violet);">1</div>
+          <div class="comm-step-line"></div>
+          <div><div class="comm-step-title">POST /api/pipeline/run</div><div class="comm-step-detail">Client sends: {projectId, pipelineType, input, options}</div></div>
+        </div>
+        <div class="comm-step">
+          <div class="comm-step-num" style="background:var(--teal);">2</div>
+          <div class="comm-step-line"></div>
+          <div><div class="comm-step-title">SSE headers established</div><div class="comm-step-detail">Content-Type: text/event-stream · Cache-Control: no-cache</div></div>
+        </div>
+        <div class="comm-step">
+          <div class="comm-step-num" style="background:var(--cyan);">3</div>
+          <div class="comm-step-line"></div>
+          <div><div class="comm-step-title">Context assembled</div><div class="comm-step-detail">Product spec + extracted document text merged into prompt context</div></div>
+        </div>
+        <div class="comm-step">
+          <div class="comm-step-num" style="background:var(--amber);">4</div>
+          <div class="comm-step-line"></div>
+          <div><div class="comm-step-title">Agent chain executes</div><div class="comm-step-detail">Sequential: each agent receives prior JSON output + original context</div></div>
+        </div>
+        <div class="comm-step">
+          <div class="comm-step-num" style="background:var(--violet);">5</div>
+          <div class="comm-step-line"></div>
+          <div><div class="comm-step-title">Events stream live to UI</div><div class="comm-step-detail">agent_start → agent_complete (result) → pipeline_complete</div></div>
+        </div>
+        <div class="comm-step">
+          <div class="comm-step-num" style="background:var(--teal);">6</div>
+          <div class="comm-step-line"></div>
+          <div><div class="comm-step-title">Run saved to projects.json</div><div class="comm-step-detail">approvalItems[] created · status = awaiting_approval</div></div>
+        </div>
+        <div class="comm-step">
+          <div class="comm-step-num" style="background:var(--rose);">7</div>
+          <div><div class="comm-step-title">Human Approval Gate</div><div class="comm-step-detail">User reviews, approves or rejects each item with optional feedback</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="section-label"><div class="section-label-bar amber"></div>TOOL INTEGRATIONS</div>
+        <div class="tool-row"><div class="tool-pill" style="background:var(--violet);">groq-sdk</div><div class="tool-desc">Groq API — LLaMA 3.3 70B + 3.1 8B inference</div></div>
+        <div class="tool-row"><div class="tool-pill" style="background:var(--teal);">multer</div><div class="tool-desc">File upload — type whitelist + 50 MB size cap</div></div>
+        <div class="tool-row"><div class="tool-pill" style="background:var(--cyan);">pdf-parse</div><div class="tool-desc">PDF text extraction for pipeline context</div></div>
+        <div class="tool-row"><div class="tool-pill" style="background:var(--blue);">mammoth</div><div class="tool-desc">DOCX → plain text for AI consumption</div></div>
+        <div class="tool-row"><div class="tool-pill" style="background:var(--amber);">jsonwebtoken</div><div class="tool-desc">JWT sign / verify — 7-day token expiry</div></div>
+        <div class="tool-row"><div class="tool-pill" style="background:var(--slate);">bcryptjs</div><div class="tool-desc">Password hashing with salt rounds = 10</div></div>
+        <div class="tool-row"><div class="tool-pill" style="background:var(--rose);">winston</div><div class="tool-desc">File rotating logs + in-memory buffer (1000 entries)</div></div>
+        <div class="tool-row"><div class="tool-pill" style="background:var(--teal);">express</div><div class="tool-desc">REST API server + SSE pipeline streaming endpoint</div></div>
+      </div>
+    </div>
+
+    <!-- Error Handling -->
+    <div class="section-label"><div class="section-label-bar rose"></div>ERROR-HANDLING LOGIC</div>
+    <div class="error-grid">
+      <div class="error-card"><div class="error-title">↯ JSON Parse Failure</div><div class="error-detail">Strip markdown fences → JSON.parse → on error: wrap raw text in {_rawText} object. Pipeline continues safely.</div></div>
+      <div class="error-card"><div class="error-title">↯ GROQ_API_KEY Missing</div><div class="error-detail">Pre-pipeline check before agents start → HTTP 500 with actionable message and link to console.groq.com.</div></div>
+      <div class="error-card"><div class="error-title">↯ File Type Blocked</div><div class="error-detail">Multer fileFilter whitelist → HTTP 400 response listing all allowed extensions to the user.</div></div>
+      <div class="error-card"><div class="error-title">↯ 401 Unauthorized</div><div class="error-detail">authMiddleware catches expired JWT → client auto-clears localStorage token and redirects to /login.</div></div>
+      <div class="error-card"><div class="error-title">↯ Agent API Error</div><div class="error-detail">try/catch wraps each agent call → run.status = "failed" → SSE error event emitted to client with message.</div></div>
+      <div class="error-card"><div class="error-title">↯ Document Parse Failure</div><div class="error-detail">fileParser returns {text: "error msg"} and never throws — pipeline context formation continues safely.</div></div>
+    </div>
+
+    <!-- Storage -->
+    <div class="section-label"><div class="section-label-bar teal"></div>DATA STORAGE</div>
+    <div class="storage-grid">
+      <div class="storage-row"><div class="storage-badge" style="background:var(--violet);">data/users.json</div><div class="storage-desc">User accounts · bcrypt hashed passwords · roles (user / admin)</div></div>
+      <div class="storage-row"><div class="storage-badge" style="background:var(--teal);">data/projects.json</div><div class="storage-desc">Projects · pipelineRuns[] · approvalItems[] · socialAccounts[]</div></div>
+      <div class="storage-row"><div class="storage-badge" style="background:var(--cyan);">data/documents.json</div><div class="storage-desc">Document metadata · first 50,000 chars of extracted text</div></div>
+      <div class="storage-row"><div class="storage-badge" style="background:var(--amber);">uploads/</div><div class="storage-desc">Raw uploaded files — PDF, DOCX, TXT, images, videos (up to 50 MB)</div></div>
+      <div class="storage-row"><div class="storage-badge" style="background:var(--blue);">logs/system.log</div><div class="storage-desc">Winston rotating log — 10 MB max · 5 file rotation · API key masked</div></div>
+      <div class="storage-row"><div class="storage-badge" style="background:var(--rose);">logBuffer[]</div><div class="storage-desc">Last 1,000 entries served live to frontend via /api/logs with SSE</div></div>
+    </div>
+
+  </div>
+
+  <div class="page-footer">
+    <span>Yuktiva AI · Problem Statement 1: Enterprise Content Operations · ET GenAI Hackathon 2026</span>
+    <span>groq.com/llama — llama-3.3-70b-versatile + llama-3.1-8b-instant</span>
+  </div>
+</div>
+
+</body>
+</html>
